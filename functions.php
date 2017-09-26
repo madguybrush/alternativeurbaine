@@ -117,25 +117,93 @@ add_action( 'widgets_init', 'alternativeurbaine_widgets_init' );
  * Enqueue scripts and styles.
  */
 function alternativeurbaine_scripts() {
-	wp_enqueue_style( 'alternativeurbaine-style', get_stylesheet_uri() );
+	
 
         wp_enqueue_style( 'bootstrapCss', get_template_directory_uri() . '/bootstrap/css/bootstrap.min.css',false,'3.7','all');
+    
+    wp_enqueue_style( 'alternativeurbaine-style', get_stylesheet_uri() );
        
-//    
-//    wp_enqueue_script( 'script', get_template_directory_uri() . '/js/script.js', array ( 'jquery' ), 1.1, true);
+   /**/
+   /* wp_enqueue_script( 'script', get_template_directory_uri() . '/js/script.js', array ( 'jquery' ), 1.1, true);*/
+    
+//     if (!is_admin()) {
     
 	wp_enqueue_script( 'alternativeurbaine-navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20151215', true );
 
 	wp_enqueue_script( 'alternativeurbaine-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20151215', true );
+    
+    	/*wp_enqueue_script( 'alternativeurbaine-datepicker', get_template_directory_uri() . '/js/jquery/ui/datepicker.min.js', array(), '20151215', true );*/
+
+   wp_enqueue_script( 'alternativeurbaine-jquery', 'https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js', array(), '20151215', true );
+    
+     wp_enqueue_script( 'alternativeurbaine-bootjs', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', array(), '20151215', true );
 
 
     
+ /*   remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+remove_action( 'wp_print_styles', 'print_emoji_styles' );
+    */
     
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
 }
 add_action( 'wp_enqueue_scripts', 'alternativeurbaine_scripts' );
+
+    function add_e2_date_picker(){
+    //jQuery UI date picker file
+    wp_enqueue_script('jquery-ui-datepicker');
+    //jQuery UI theme css file
+    wp_enqueue_style('e2b-admin-ui-css','http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css',false,"1.9.0",false);
+    }
+    add_action('admin_enqueue_scripts', 'add_e2_date_picker'); 
+
+
+
+    /***virer widht et height auto wp***/
+    add_filter( 'post_thumbnail_html', 'remove_width_attribute', 10 );
+add_filter( 'image_send_to_editor', 'remove_width_attribute', 10 );
+
+function remove_width_attribute( $html ) {
+   $html = preg_replace( '/(width|height)="\d*"\s/', "", $html );
+   return $html;
+}
+
+
+
+
+add_action( 'init', function() {
+
+    // Remove the REST API endpoint.
+    remove_action('rest_api_init', 'wp_oembed_register_route');
+
+    // Turn off oEmbed auto discovery.
+    // Don't filter oEmbed results.
+    remove_filter('oembed_dataparse', 'wp_filter_oembed_result', 10);
+
+    // Remove oEmbed discovery links.
+    remove_action('wp_head', 'wp_oembed_add_discovery_links');
+
+    // Remove oEmbed-specific JavaScript from the front-end and back-end.
+    remove_action('wp_head', 'wp_oembed_add_host_js');
+}, PHP_INT_MAX - 1 );
+
+/**************gestion class active du menu*****************/
+add_filter('nav_menu_css_class' , 'special_nav_class' , 10 , 2);
+
+function special_nav_class ($classes, $item) {
+    if (in_array('current-menu-item', $classes) ){
+        $classes[] = 'active ';
+    }
+    return $classes;
+}
+
+/**********enleve le dernier point du menu*************/
+function replace_last_nav_item($items, $args) {
+  return substr_replace($items, '', strrpos($items, $args->after), strlen($args->after));
+}
+add_filter('wp_nav_menu','replace_last_nav_item',100,2);
+
 
 /**
  * Implement the Custom Header feature.
